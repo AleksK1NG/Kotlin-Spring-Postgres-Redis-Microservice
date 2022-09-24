@@ -12,14 +12,30 @@ import java.util.*
 @Table(schema = "microservices", name = "bank_accounts")
 data class BankAccount(
     @Id @Column("bank_account_id") val id: UUID?,
-    @Column("email") val email: String,
-    @Column("phone") val phone: String,
-    @Column("balance") val balance: BigDecimal,
-    @Column("currency") val currency: String,
-    @Column("created_at") val createdAt: LocalDateTime,
-    @Column("updated_at") val updatedAt: LocalDateTime,
+    @Column("email") var email: String,
+    @Column("phone") var phone: String,
+    @Column("balance") var balance: BigDecimal,
+    @Column("currency") var currency: String,
+    @Column("created_at") var createdAt: LocalDateTime,
+    @Column("updated_at") var updatedAt: LocalDateTime,
 ) {
-    companion object { }
+
+    fun depositAmount(amount: BigDecimal) {
+        if (amount.compareTo(BigDecimal.ZERO) == -1) throw RuntimeException("invalid amount: $amount")
+        balance = balance.add(amount)
+        updatedAt = LocalDateTime.now()
+    }
+
+    fun withdrawAmount(amount: BigDecimal) {
+        val expectedBalance = balance.minus(amount)
+        if (expectedBalance.compareTo(BigDecimal.ZERO) == -1) throw RuntimeException("not enough balance")
+        balance = expectedBalance
+        updatedAt = LocalDateTime.now()
+    }
+
+
+    companion object {}
+
 }
 
 fun BankAccount.Companion.fromCreateRequest(createBankAccountRequest: CreateBankAccountRequest): BankAccount {
