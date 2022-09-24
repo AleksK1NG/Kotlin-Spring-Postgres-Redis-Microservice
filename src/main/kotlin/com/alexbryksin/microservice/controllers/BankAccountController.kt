@@ -22,14 +22,15 @@ class BankAccountController(private val bankAccountService: BankAccountService) 
 
     @PostMapping
     suspend fun createBankAccount(@RequestBody createBankAccountRequest: CreateBankAccountRequest) = coroutineScope {
-        val bankAccount = bankAccountService.createBankAccount(createBankAccountRequest)
-        ResponseEntity.status(HttpStatus.CREATED).body(bankAccount)
-            .also { log.info("created bank account: $bankAccount") }
+        bankAccountService.createBankAccount(createBankAccountRequest)
+            .also {
+                log.info("created bank account: $it")
+                ResponseEntity.status(HttpStatus.CREATED).body(it)
+            }
     }
 
     @GetMapping(path = ["{id}"])
     suspend fun getBankAccountById(@PathVariable(required = true) id: UUID) = coroutineScope {
-        log.info("GET bank account by ID: $id")
         ResponseEntity.ok(bankAccountService.getBankAccountById(id).also { log.info("get bank account: $it") })
     }
 

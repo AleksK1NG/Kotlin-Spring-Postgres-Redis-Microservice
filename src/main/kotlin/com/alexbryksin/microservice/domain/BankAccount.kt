@@ -4,6 +4,7 @@ import com.alexbryksin.microservice.dto.CreateBankAccountRequest
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
+import java.io.Serializable
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.*
@@ -18,7 +19,7 @@ data class BankAccount(
     @Column("currency") var currency: String,
     @Column("created_at") var createdAt: LocalDateTime,
     @Column("updated_at") var updatedAt: LocalDateTime,
-) {
+) : Serializable {
 
     fun depositAmount(amount: BigDecimal) {
         if (amount.compareTo(BigDecimal.ZERO) == -1) throw RuntimeException("invalid amount: $amount")
