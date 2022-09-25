@@ -17,7 +17,7 @@ data class BankAccount(
     @Column("email") var email: String,
     @Column("phone") var phone: String,
     @Column("balance") var balance: BigDecimal,
-    @Column("currency") var currency: String,
+    @Column("currency") var currency: Currency,
     @Column("created_at") var createdAt: LocalDateTime,
     @Column("updated_at") var updatedAt: LocalDateTime,
 ) : Serializable {

@@ -7,5 +7,5 @@ data class CreateBankAccountRequest(
     val email: String,
     val phone: String,
     val balance: BigDecimal,
-    val currency: String = Currency.USD.toString()
+    val currency: Currency = Currency.USD
 )
