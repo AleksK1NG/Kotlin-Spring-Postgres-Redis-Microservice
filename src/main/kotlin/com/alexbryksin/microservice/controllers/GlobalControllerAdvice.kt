@@ -2,6 +2,7 @@ package com.alexbryksin.microservice.controllers
 
 import com.alexbryksin.microservice.exceptions.BankAccountNotFoundException
 import com.alexbryksin.microservice.exceptions.ErrorHttpResponse
+import com.alexbryksin.microservice.exceptions.InvalidAmountException
 import org.slf4j.LoggerFactory
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
@@ -32,7 +33,14 @@ class GlobalControllerAdvice {
             .also { log.error("(GlobalControllerAdvice) BankAccountNotFoundException NOT_FOUND", ex) }
     }
 
+    @ExceptionHandler(value = [InvalidAmountException::class])
+    fun handleInvalidAmountExceptionException(ex: InvalidAmountException, request: ServerHttpRequest): ResponseEntity<ErrorHttpResponse> {
+        val errorHttpResponse = ErrorHttpResponse(HttpStatus.BAD_REQUEST.value(), ex.message ?: "", LocalDateTime.now().toString())
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(errorHttpResponse)
+            .also { log.error("(GlobalControllerAdvice) InvalidAmountException BAD_REQUEST", ex) }
+    }
+
     companion object {
-        private val log = LoggerFactory.getLogger(BankAccountController::class.java)
+        private val log = LoggerFactory.getLogger(GlobalControllerAdvice::class.java)
     }
 }

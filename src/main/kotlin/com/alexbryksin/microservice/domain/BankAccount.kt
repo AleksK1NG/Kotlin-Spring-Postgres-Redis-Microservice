@@ -1,6 +1,7 @@
 package com.alexbryksin.microservice.domain
 
 import com.alexbryksin.microservice.dto.CreateBankAccountRequest
+import com.alexbryksin.microservice.exceptions.InvalidAmountException
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
@@ -22,20 +23,19 @@ data class BankAccount(
 ) : Serializable {
 
     fun depositAmount(amount: BigDecimal) {
-        if (amount.compareTo(BigDecimal.ZERO) == -1) throw RuntimeException("invalid amount: $amount")
+        if (amount.compareTo(BigDecimal.ZERO) == -1) throw InvalidAmountException("invalid amount: $amount")
         balance = balance.add(amount)
         updatedAt = LocalDateTime.now()
     }
 
     fun withdrawAmount(amount: BigDecimal) {
         val expectedBalance = balance.minus(amount)
-        if (expectedBalance.compareTo(BigDecimal.ZERO) == -1) throw RuntimeException("not enough balance")
+        if (expectedBalance.compareTo(BigDecimal.ZERO) == -1) throw InvalidAmountException("not enough balance")
         balance = expectedBalance
         updatedAt = LocalDateTime.now()
     }
 
-
-    companion object {}
+    companion object
 
 }
 
