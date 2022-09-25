@@ -18,14 +18,14 @@ class BankAccountCacheRepositoryImpl(
     private val mapper: ObjectMapper
 ) : BankAccountCacheRepository {
 
-    override suspend fun setBankAccount(id: String, bankAccount: BankAccount): Unit = withContext(Dispatchers.IO) {
+    override suspend fun setBankAccountById(id: String, bankAccount: BankAccount): Unit = withContext(Dispatchers.IO) {
         val bucket = redissonClient.getBucket<String>(id, StringCodec.INSTANCE)
         val serializedBankAccount = mapper.writeValueAsString(bankAccount)
         bucket.set(serializedBankAccount, timeToLiveSeconds, TimeUnit.SECONDS).awaitSingleOrNull()
             .also { log.info("redis set key: $id, value: $serializedBankAccount") }
     }
 
-    override suspend fun getBankAccount(id: String): BankAccount? = withContext(Dispatchers.IO) {
+    override suspend fun getBankAccountById(id: String): BankAccount? = withContext(Dispatchers.IO) {
         val bucket = redissonClient.getBucket<String?>(id, StringCodec.INSTANCE)
         val cachedBankAccount = bucket.get().awaitSingleOrNull() ?: return@withContext null
         mapper.readValue(cachedBankAccount, BankAccount::class.java)
@@ -34,6 +34,6 @@ class BankAccountCacheRepositoryImpl(
 
     companion object {
         private val log = LoggerFactory.getLogger(BankAccountCacheRepositoryImpl::class.java)
-        private const val timeToLiveSeconds: Long = 15
+        private const val timeToLiveSeconds: Long = 240
     }
 }

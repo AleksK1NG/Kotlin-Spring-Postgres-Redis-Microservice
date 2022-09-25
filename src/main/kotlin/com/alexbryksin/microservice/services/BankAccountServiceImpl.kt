@@ -4,10 +4,13 @@ import com.alexbryksin.microservice.domain.BankAccount
 import com.alexbryksin.microservice.domain.fromCreateRequest
 import com.alexbryksin.microservice.dto.CreateBankAccountRequest
 import com.alexbryksin.microservice.dto.DepositAmountRequest
+import com.alexbryksin.microservice.exceptions.BankAccountNotFoundException
 import com.alexbryksin.microservice.repositories.BankAccountCacheRepository
 import com.alexbryksin.microservice.repositories.BankAccountRepository
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
 
@@ -17,25 +20,26 @@ class BankAccountServiceImpl(
     private val bankAccountCacheRepository: BankAccountCacheRepository
 ) : BankAccountService {
 
-    override suspend fun depositAmount(id: UUID, depositAmountRequest: DepositAmountRequest) = coroutineScope {
-        val bankAccount = bankAccountRepository.findById(id) ?: throw RuntimeException("bank account with id: $id not found")
+    @Transactional
+    override suspend fun depositAmount(id: UUID, depositAmountRequest: DepositAmountRequest) = withContext(Dispatchers.IO) {
+        val bankAccount = bankAccountRepository.findById(id) ?: throw BankAccountNotFoundException("bank account with id: $id not found")
         bankAccount.depositAmount(depositAmountRequest.amount)
         bankAccountRepository.save(bankAccount)
-            .also { bankAccountCacheRepository.setBankAccount(id.toString(), it) }
+            .also { bankAccountCacheRepository.setBankAccountById(id.toString(), it) }
     }
 
-    override suspend fun createBankAccount(createBankAccountRequest: CreateBankAccountRequest): BankAccount = coroutineScope {
+    override suspend fun createBankAccount(createBankAccountRequest: CreateBankAccountRequest): BankAccount = withContext(Dispatchers.IO) {
         val bankAccount = BankAccount.fromCreateRequest(createBankAccountRequest)
         val savedBankAccount = bankAccountRepository.save(bankAccount)
         savedBankAccount
     }
 
-    override suspend fun getBankAccountById(id: UUID): BankAccount = coroutineScope {
-        val cachedBankAccount = bankAccountCacheRepository.getBankAccount(id.toString())
-        if (cachedBankAccount != null) return@coroutineScope cachedBankAccount
-        val bankAccount = bankAccountRepository.findById(id) ?: throw RuntimeException("bank account with id: $id not found")
+    override suspend fun getBankAccountById(id: UUID): BankAccount = withContext(Dispatchers.IO) {
+        val cachedBankAccount = bankAccountCacheRepository.getBankAccountById(id.toString())
+        if (cachedBankAccount != null) return@withContext cachedBankAccount
+        val bankAccount = bankAccountRepository.findById(id) ?: throw BankAccountNotFoundException("bank account with id: $id not found")
 
-        bankAccountCacheRepository.setBankAccount(id.toString(), bankAccount)
+        bankAccountCacheRepository.setBankAccountById(id.toString(), bankAccount)
         bankAccount
     }
 }

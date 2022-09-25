@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface BankAccountCacheRepository {
-    suspend fun setBankAccount(id: String, bankAccount: BankAccount)
+    suspend fun setBankAccountById(id: String, bankAccount: BankAccount)
 
-    suspend fun getBankAccount(id: String): BankAccount?
+    suspend fun getBankAccountById(id: String): BankAccount?
 }
