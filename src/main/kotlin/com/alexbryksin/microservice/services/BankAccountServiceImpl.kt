@@ -20,7 +20,7 @@ class BankAccountServiceImpl(
     override suspend fun depositAmount(id: UUID, depositAmountRequest: DepositAmountRequest) = coroutineScope {
         val bankAccount = bankAccountRepository.findById(id) ?: throw RuntimeException("bank account with id: $id not found")
         bankAccount.depositAmount(depositAmountRequest.amount)
-        bankAccountRepository.save(bankAccount)
+        bankAccountRepository.save(bankAccount).also { bankAccountCacheRepository.setBankAccount(id.toString(), it) }
     }
 
     override suspend fun createBankAccount(createBankAccountRequest: CreateBankAccountRequest): BankAccount = coroutineScope {
