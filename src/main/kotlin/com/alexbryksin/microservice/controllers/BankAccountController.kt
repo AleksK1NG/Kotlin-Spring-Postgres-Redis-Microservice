@@ -32,7 +32,7 @@ class BankAccountController(private val bankAccountService: BankAccountService) 
     @Operation(method = "createBankAccount", summary = "create new bank account", operationId = "createBankAccount")
     suspend fun createBankAccount(@RequestBody createBankAccountRequest: CreateBankAccountRequest) = coroutineScope {
         bankAccountService.createBankAccount(createBankAccountRequest)
-            .also {
+            .let {
                 log.info("created bank account: $it")
                 ResponseEntity.status(HttpStatus.CREATED).body(SuccessBankAccountResponse.of(it))
             }
