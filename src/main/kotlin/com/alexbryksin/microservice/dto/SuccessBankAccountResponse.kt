@@ -14,7 +14,7 @@ data class SuccessBankAccountResponse(
     val createdAt: String,
     val updatedAt: String,
 ) {
-    companion object {}
+    companion object
 }
 
 fun SuccessBankAccountResponse.Companion.of(bankAccount: BankAccount): SuccessBankAccountResponse {
