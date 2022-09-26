@@ -45,6 +45,13 @@ class BankAccountController(private val bankAccountService: BankAccountService) 
             .also { log.info("success get bank account: $it") })
     }
 
+    @GetMapping(path = ["/email/{email}"])
+    @Operation(method = "getBankAccountByEmail", summary = "get bank account by email", operationId = "getBankAccountByEmail")
+    suspend fun getBankAccountByEmail(@PathVariable(required = true) email: String) = coroutineScope {
+        ResponseEntity.ok(SuccessBankAccountResponse.of(bankAccountService.getBankAccountByEmail(email))
+            .also { log.info("success get bank account bu email: $it") })
+    }
+
     companion object {
         private val log = LoggerFactory.getLogger(BankAccountController::class.java)
     }

@@ -21,25 +21,39 @@ class BankAccountServiceImpl(
 ) : BankAccountService {
 
     @Transactional
-    override suspend fun depositAmount(id: UUID, depositAmountRequest: DepositAmountRequest) = withContext(Dispatchers.IO) {
-        val bankAccount = bankAccountRepository.findById(id) ?: throw BankAccountNotFoundException("bank account with id: $id not found")
-        bankAccount.depositAmount(depositAmountRequest.amount)
-        bankAccountRepository.save(bankAccount)
-            .also { bankAccountCacheRepository.setBankAccountById(id.toString(), it) }
-    }
+    override suspend fun depositAmount(id: UUID, depositAmountRequest: DepositAmountRequest) =
+        withContext(Dispatchers.IO) {
+            val bankAccount = bankAccountRepository.findById(id)
+                ?: throw BankAccountNotFoundException("bank account with id: $id not found")
+            bankAccount.depositAmount(depositAmountRequest.amount)
+            bankAccountRepository.save(bankAccount)
+                .also { bankAccountCacheRepository.setBankAccountByKey(id.toString(), it) }
+        }
 
-    override suspend fun createBankAccount(createBankAccountRequest: CreateBankAccountRequest): BankAccount = withContext(Dispatchers.IO) {
-        val bankAccount = BankAccount.fromCreateRequest(createBankAccountRequest)
-        val savedBankAccount = bankAccountRepository.save(bankAccount)
-        savedBankAccount
-    }
+    override suspend fun createBankAccount(createBankAccountRequest: CreateBankAccountRequest): BankAccount =
+        withContext(Dispatchers.IO) {
+            val bankAccount = BankAccount.fromCreateRequest(createBankAccountRequest)
+            val savedBankAccount = bankAccountRepository.save(bankAccount)
+            savedBankAccount
+        }
 
     override suspend fun getBankAccountById(id: UUID): BankAccount = withContext(Dispatchers.IO) {
-        val cachedBankAccount = bankAccountCacheRepository.getBankAccountById(id.toString())
+        val cachedBankAccount = bankAccountCacheRepository.getBankAccountByKey(id.toString())
         if (cachedBankAccount != null) return@withContext cachedBankAccount
-        val bankAccount = bankAccountRepository.findById(id) ?: throw BankAccountNotFoundException("bank account with id: $id not found")
+        val bankAccount = bankAccountRepository.findById(id)
+            ?: throw BankAccountNotFoundException("bank account with id: $id not found")
 
-        bankAccountCacheRepository.setBankAccountById(id.toString(), bankAccount)
+        bankAccountCacheRepository.setBankAccountByKey(id.toString(), bankAccount)
+        bankAccount
+    }
+
+    override suspend fun getBankAccountByEmail(email: String): BankAccount = withContext(Dispatchers.IO) {
+        val cachedBankAccount = bankAccountCacheRepository.getBankAccountByKey(email)
+        if (cachedBankAccount != null) return@withContext cachedBankAccount
+
+        val bankAccount = bankAccountRepository.findByEmail(email)
+            ?: throw BankAccountNotFoundException("bank account with email: $email not found")
+        bankAccountCacheRepository.setBankAccountByKey(email, bankAccount)
         bankAccount
     }
 }

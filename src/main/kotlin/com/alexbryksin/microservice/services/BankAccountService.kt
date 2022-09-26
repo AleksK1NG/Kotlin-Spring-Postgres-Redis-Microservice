@@ -15,4 +15,6 @@ interface BankAccountService {
     suspend fun createBankAccount(createBankAccountRequest: CreateBankAccountRequest): BankAccount
 
     suspend fun getBankAccountById(id: UUID): BankAccount
+
+    suspend fun getBankAccountByEmail(email: String): BankAccount
 }
