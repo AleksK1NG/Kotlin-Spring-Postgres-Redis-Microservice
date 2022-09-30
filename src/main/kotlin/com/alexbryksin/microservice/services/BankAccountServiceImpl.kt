@@ -9,6 +9,8 @@ import com.alexbryksin.microservice.repositories.BankAccountCacheRepository
 import com.alexbryksin.microservice.repositories.BankAccountRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.springframework.cloud.sleuth.Tracer
+import org.springframework.cloud.sleuth.instrument.kotlin.asContextElement
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -17,43 +19,70 @@ import java.util.*
 @Service
 class BankAccountServiceImpl(
     private val bankAccountRepository: BankAccountRepository,
-    private val bankAccountCacheRepository: BankAccountCacheRepository
+    private val bankAccountCacheRepository: BankAccountCacheRepository,
+    private val tracer: Tracer
 ) : BankAccountService {
 
     @Transactional
     override suspend fun depositAmount(id: UUID, depositAmountRequest: DepositAmountRequest) =
-        withContext(Dispatchers.IO) {
-            val bankAccount = bankAccountRepository.findById(id)
-                ?: throw BankAccountNotFoundException("bank account with id: $id not found")
-            bankAccount.depositAmount(depositAmountRequest.amount)
-            bankAccountRepository.save(bankAccount)
-                .also { bankAccountCacheRepository.setKey(id.toString(), it) }
+        withContext(Dispatchers.IO + tracer.asContextElement()) {
+            val span = tracer.nextSpan(tracer.currentSpan()).start().name("BankAccountServiceImpl.depositAmount")
+
+            try {
+                val bankAccount = bankAccountRepository.findById(id)
+                    ?: throw BankAccountNotFoundException("bank account with id: $id not found")
+                bankAccount.depositAmount(depositAmountRequest.amount)
+                bankAccountRepository.save(bankAccount)
+                    .also {
+                        span.tag("bankAccount", it.toString())
+                        bankAccountCacheRepository.setKey(id.toString(), it)
+                    }
+            } finally {
+                span.end()
+            }
         }
 
     override suspend fun createBankAccount(createBankAccountRequest: CreateBankAccountRequest): BankAccount =
-        withContext(Dispatchers.IO) {
-            val bankAccount = BankAccount.fromCreateRequest(createBankAccountRequest)
-            val savedBankAccount = bankAccountRepository.save(bankAccount)
-            savedBankAccount
+        withContext(Dispatchers.IO + tracer.asContextElement()) {
+            val span = tracer.nextSpan(tracer.currentSpan()).start().name("BankAccountServiceImpl.createBankAccount")
+            try {
+                bankAccountRepository.save(BankAccount.fromCreateRequest(createBankAccountRequest))
+                    .also { span.tag("bankAccount", it.toString()) }
+            } finally {
+                span.end()
+            }
         }
 
-    override suspend fun getBankAccountById(id: UUID): BankAccount = withContext(Dispatchers.IO) {
-        val cachedBankAccount = bankAccountCacheRepository.getKey(id.toString(), BankAccount::class.java)
-        if (cachedBankAccount != null) return@withContext cachedBankAccount
-        val bankAccount = bankAccountRepository.findById(id)
-            ?: throw BankAccountNotFoundException("bank account with id: $id not found")
+    override suspend fun getBankAccountById(id: UUID): BankAccount = withContext(Dispatchers.IO + tracer.asContextElement()) {
+        val span = tracer.nextSpan(tracer.currentSpan()).start().name("BankAccountServiceImpl.getBankAccountById")
 
-        bankAccountCacheRepository.setKey(id.toString(), bankAccount)
-        bankAccount
+        try {
+            val cachedBankAccount = bankAccountCacheRepository.getKey(id.toString(), BankAccount::class.java)
+            if (cachedBankAccount != null) return@withContext cachedBankAccount
+            val bankAccount = bankAccountRepository.findById(id)
+                ?: throw BankAccountNotFoundException("bank account with id: $id not found")
+
+            bankAccountCacheRepository.setKey(id.toString(), bankAccount)
+            bankAccount.also { span.tag("bankAccount", it.toString()) }
+        } finally {
+            span.end()
+        }
+
     }
 
-    override suspend fun getBankAccountByEmail(email: String): BankAccount = withContext(Dispatchers.IO) {
-        val cachedBankAccount = bankAccountCacheRepository.getKey(email, BankAccount::class.java)
-        if (cachedBankAccount != null) return@withContext cachedBankAccount
+    override suspend fun getBankAccountByEmail(email: String): BankAccount = withContext(Dispatchers.IO + tracer.asContextElement()) {
+        val span = tracer.nextSpan(tracer.currentSpan()).start().name("BankAccountServiceImpl.getBankAccountByEmail")
 
-        val bankAccount = bankAccountRepository.findByEmail(email)
-            ?: throw BankAccountNotFoundException("bank account with email: $email not found")
-        bankAccountCacheRepository.setKey(email, bankAccount)
-        bankAccount
+        try {
+            val cachedBankAccount = bankAccountCacheRepository.getKey(email, BankAccount::class.java)
+            if (cachedBankAccount != null) return@withContext cachedBankAccount
+
+            val bankAccount = bankAccountRepository.findByEmail(email)
+                ?: throw BankAccountNotFoundException("bank account with email: $email not found")
+            bankAccountCacheRepository.setKey(email, bankAccount)
+            bankAccount.also { span.tag("bankAccount", it.toString()) }
+        } finally {
+            span.end()
+        }
     }
 }
