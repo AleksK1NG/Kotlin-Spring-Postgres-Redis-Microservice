@@ -27,7 +27,7 @@ class BankAccountServiceImpl(
                 ?: throw BankAccountNotFoundException("bank account with id: $id not found")
             bankAccount.depositAmount(depositAmountRequest.amount)
             bankAccountRepository.save(bankAccount)
-                .also { bankAccountCacheRepository.setBankAccountByKey(id.toString(), it) }
+                .also { bankAccountCacheRepository.setKey(id.toString(), it) }
         }
 
     override suspend fun createBankAccount(createBankAccountRequest: CreateBankAccountRequest): BankAccount =
@@ -38,22 +38,22 @@ class BankAccountServiceImpl(
         }
 
     override suspend fun getBankAccountById(id: UUID): BankAccount = withContext(Dispatchers.IO) {
-        val cachedBankAccount = bankAccountCacheRepository.getBankAccountByKey(id.toString())
+        val cachedBankAccount = bankAccountCacheRepository.getKey(id.toString(), BankAccount::class.java)
         if (cachedBankAccount != null) return@withContext cachedBankAccount
         val bankAccount = bankAccountRepository.findById(id)
             ?: throw BankAccountNotFoundException("bank account with id: $id not found")
 
-        bankAccountCacheRepository.setBankAccountByKey(id.toString(), bankAccount)
+        bankAccountCacheRepository.setKey(id.toString(), bankAccount)
         bankAccount
     }
 
     override suspend fun getBankAccountByEmail(email: String): BankAccount = withContext(Dispatchers.IO) {
-        val cachedBankAccount = bankAccountCacheRepository.getBankAccountByKey(email)
+        val cachedBankAccount = bankAccountCacheRepository.getKey(email, BankAccount::class.java)
         if (cachedBankAccount != null) return@withContext cachedBankAccount
 
         val bankAccount = bankAccountRepository.findByEmail(email)
             ?: throw BankAccountNotFoundException("bank account with email: $email not found")
-        bankAccountCacheRepository.setBankAccountByKey(email, bankAccount)
+        bankAccountCacheRepository.setKey(email, bankAccount)
         bankAccount
     }
 }

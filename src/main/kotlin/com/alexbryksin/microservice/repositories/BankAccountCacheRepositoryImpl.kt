@@ -18,6 +18,19 @@ class BankAccountCacheRepositoryImpl(
     private val mapper: ObjectMapper
 ) : BankAccountCacheRepository {
 
+    override suspend fun setKey(key: String, value: Any): Unit = withContext(Dispatchers.IO) {
+        val bucket = redissonClient.getBucket<String>(getKey(key), StringCodec.INSTANCE)
+        val serializedValue = mapper.writeValueAsString(value)
+        bucket.set(serializedValue, timeToLiveSeconds, TimeUnit.SECONDS).awaitSingleOrNull()
+            .also { log.info("redis set key: $key, value: $serializedValue") }
+    }
+
+    override suspend fun <T> getKey(key: String, clazz: Class<T>): T? = withContext(Dispatchers.IO) {
+        val bucket = redissonClient.getBucket<String>(getKey(key), StringCodec.INSTANCE)
+        val value = bucket.get().awaitSingleOrNull() ?: return@withContext null
+        mapper.readValue(value, clazz).also { log.info("redis get key: $key, value: $it") }
+    }
+
     override suspend fun setBankAccountByKey(key: String, bankAccount: BankAccount): Unit =
         withContext(Dispatchers.IO) {
             val bucket = redissonClient.getBucket<String>(getBankAccountKey(key), StringCodec.INSTANCE)
@@ -49,9 +62,12 @@ class BankAccountCacheRepositoryImpl(
 
     private fun getBankAccountKey(key: String): String = "$bankAccountRedisPrefix:$key"
 
+    private fun getKey(key: String): String = "$prefix:$key"
+
     companion object {
         private val log = LoggerFactory.getLogger(BankAccountCacheRepositoryImpl::class.java)
         private const val timeToLiveSeconds: Long = 240
         private const val bankAccountRedisPrefix = "bankAccount"
+        private const val prefix = "bankAccountMicroservice"
     }
 }

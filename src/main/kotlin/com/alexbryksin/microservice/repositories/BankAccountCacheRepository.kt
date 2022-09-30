@@ -6,6 +6,11 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface BankAccountCacheRepository {
+
+    suspend fun setKey(key: String, value: Any): Unit
+
+    suspend fun <T> getKey(key: String, clazz: Class<T>): T?
+
     suspend fun setBankAccountByKey(key: String, bankAccount: BankAccount)
 
     suspend fun getBankAccountByKey(key: String): BankAccount?
