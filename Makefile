@@ -9,15 +9,7 @@ local:
 
 develop:
 	mvn clean package -Dmaven.test.skip
-	@echo Clearing kafka data
-	rm -rf ./es-data01
-	@echo Clearing kafka data
-	rm -rf ./kafka_data
-	@echo Clearing zookeeper data
-	rm -rf ./zookeeper
-	@echo Clearing prometheus data
-	rm -rf ./prometheus
-	@echo Starting local docker compose
+	@echo Starting docker compose
 	docker-compose -f docker-compose.yaml up -d --build
 
 
