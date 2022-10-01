@@ -39,7 +39,7 @@ services:
     networks: [ "microservices" ]
 
   node_exporter:
-    container_name: node_exporter_container
+    container_name: microservices_node_exporter
     restart: always
     image: prom/node-exporter
     ports:
@@ -47,7 +47,7 @@ services:
     networks: [ "microservices" ]
 
   grafana:
-    container_name: grafana_container
+    container_name: microservices_grafana
     restart: always
     image: grafana/grafana
     ports:
@@ -57,7 +57,7 @@ services:
   zipkin:
     image: openzipkin/zipkin:latest
     restart: always
-    container_name: zipkin
+    container_name: microservices_zipkin
     ports:
       - "9411:9411"
     networks: [ "microservices" ]

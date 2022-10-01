@@ -30,7 +30,7 @@ class BankAccountServiceImpl(
 
             try {
                 val bankAccount = bankAccountRepository.findById(id)
-                    ?: throw BankAccountNotFoundException("bank account with id: $id not found")
+                    ?: throw BankAccountNotFoundException("bank account with id: $id not found").also { span.error(it) }
                 bankAccount.depositAmount(depositAmountRequest.amount)
                 bankAccountRepository.save(bankAccount)
                     .also {
@@ -45,6 +45,7 @@ class BankAccountServiceImpl(
     override suspend fun createBankAccount(createBankAccountRequest: CreateBankAccountRequest): BankAccount =
         withContext(Dispatchers.IO + tracer.asContextElement()) {
             val span = tracer.nextSpan(tracer.currentSpan()).start().name("BankAccountServiceImpl.createBankAccount")
+
             try {
                 bankAccountRepository.save(BankAccount.fromCreateRequest(createBankAccountRequest))
                     .also { span.tag("bankAccount", it.toString()) }
@@ -78,7 +79,7 @@ class BankAccountServiceImpl(
             if (cachedBankAccount != null) return@withContext cachedBankAccount
 
             val bankAccount = bankAccountRepository.findByEmail(email)
-                ?: throw BankAccountNotFoundException("bank account with email: $email not found")
+                ?: throw BankAccountNotFoundException("bank account with email: $email not found").also { span.error(it) }
             bankAccountCacheRepository.setKey(email, bankAccount)
             bankAccount.also { span.tag("bankAccount", it.toString()) }
         } finally {
