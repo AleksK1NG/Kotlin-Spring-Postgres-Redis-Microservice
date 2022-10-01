@@ -11,8 +11,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.springframework.cloud.sleuth.Tracer
 import org.springframework.cloud.sleuth.instrument.kotlin.asContextElement
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.util.*
 
 
@@ -86,4 +89,15 @@ class BankAccountServiceImpl(
             span.end()
         }
     }
+
+    override suspend fun findByBalanceAmount(min: BigDecimal, max: BigDecimal, pageable: Pageable): PageImpl<BankAccount> =
+        withContext(Dispatchers.IO + tracer.asContextElement()) {
+            val span = tracer.nextSpan(tracer.currentSpan()).start().name("BankAccountServiceImpl.findByBalanceAmount")
+
+            try {
+                bankAccountRepository.findByBalanceAmount(min, max, pageable)
+            } finally {
+                span.end()
+            }
+        }
 }
