@@ -7,7 +7,7 @@ import com.alexbryksin.microservice.dto.of
 import com.alexbryksin.microservice.services.BankAccountService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -22,15 +22,14 @@ class BankAccountController(private val bankAccountService: BankAccountService) 
 
     @PutMapping(path = ["{id}"])
     @Operation(method = "depositAmount", summary = "deposit amount", operationId = "depositAmount")
-    suspend fun depositAmount(@PathVariable(required = true) id: UUID, @RequestBody depositAmountRequest: DepositAmountRequest) = coroutineScope {
+    suspend fun depositAmount(@PathVariable(required = true) id: UUID, @RequestBody depositAmountRequest: DepositAmountRequest) = withTimeout(httpTimeoutMillis) {
         ResponseEntity.ok(SuccessBankAccountResponse.of(bankAccountService.depositAmount(id, depositAmountRequest))
             .also { log.info("updated account: $it") })
     }
 
-
     @PostMapping
     @Operation(method = "createBankAccount", summary = "create new bank account", operationId = "createBankAccount")
-    suspend fun createBankAccount(@RequestBody createBankAccountRequest: CreateBankAccountRequest) = coroutineScope {
+    suspend fun createBankAccount(@RequestBody createBankAccountRequest: CreateBankAccountRequest) = withTimeout(httpTimeoutMillis) {
         bankAccountService.createBankAccount(createBankAccountRequest)
             .let {
                 log.info("created bank account: $it")
@@ -40,19 +39,20 @@ class BankAccountController(private val bankAccountService: BankAccountService) 
 
     @GetMapping(path = ["{id}"])
     @Operation(method = "getBankAccountById", summary = "get bank account by id", operationId = "getBankAccountById")
-    suspend fun getBankAccountById(@PathVariable(required = true) id: UUID) = coroutineScope {
+    suspend fun getBankAccountById(@PathVariable(required = true) id: UUID) = withTimeout(httpTimeoutMillis) {
         ResponseEntity.ok(SuccessBankAccountResponse.of(bankAccountService.getBankAccountById(id))
             .also { log.info("success get bank account: $it") })
     }
 
     @GetMapping(path = ["/email/{email}"])
     @Operation(method = "getBankAccountByEmail", summary = "get bank account by email", operationId = "getBankAccountByEmail")
-    suspend fun getBankAccountByEmail(@PathVariable(required = true) email: String) = coroutineScope {
+    suspend fun getBankAccountByEmail(@PathVariable(required = true) email: String) = withTimeout(httpTimeoutMillis) {
         ResponseEntity.ok(SuccessBankAccountResponse.of(bankAccountService.getBankAccountByEmail(email))
             .also { log.info("success get bank account bu email: $it") })
     }
 
     companion object {
         private val log = LoggerFactory.getLogger(BankAccountController::class.java)
+        private const val httpTimeoutMillis = 3000L
     }
 }

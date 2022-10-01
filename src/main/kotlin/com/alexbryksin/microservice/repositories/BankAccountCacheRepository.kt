@@ -1,21 +1,18 @@
 package com.alexbryksin.microservice.repositories
 
-import com.alexbryksin.microservice.domain.BankAccount
 import org.springframework.stereotype.Repository
+import java.util.concurrent.TimeUnit
 
 
 @Repository
 interface BankAccountCacheRepository {
 
-    suspend fun setKey(key: String, value: Any): Unit
+    suspend fun setKey(key: String, value: Any)
+
+    suspend fun setKey(key: String, value: Any, timeToLive: Long, timeUnit: TimeUnit)
+
 
     suspend fun <T> getKey(key: String, clazz: Class<T>): T?
 
-    suspend fun setBankAccountByKey(key: String, bankAccount: BankAccount)
 
-    suspend fun getBankAccountByKey(key: String): BankAccount?
-
-    suspend fun setBankAccountById(id: String, bankAccount: BankAccount)
-
-    suspend fun getBankAccountById(id: String): BankAccount?
 }
