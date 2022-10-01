@@ -11,6 +11,8 @@ interface BankAccountRepository : CoroutineSortingRepository<BankAccount, UUID> 
 
     suspend fun findByEmail(email: String): BankAccount?
 
+    suspend fun findByBalanceIsBetween(min: BigDecimal, max: BigDecimal): List<BankAccount>
+
     @Modifying
     @Query(
         "INSERT INTO microservices.bank_accounts (bank_account_id, email, phone, balance, currency, created_at, updated_at) VALUES (bank_account_id = \$1, email = \$2, phone = \$3, balance = \$4, currency = \$5, created_at = now(), updated_at = now())"
