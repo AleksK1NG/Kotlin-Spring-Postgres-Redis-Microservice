@@ -27,3 +27,8 @@ clean:
 
 logs-local:
 	docker logs -f $(FILES)
+
+upload:
+	mvn clean package -Dmaven.test.skip
+	docker build -t alexanderbryksin/kotlin_spring_microservice:latest --platform=linux/arm64 -f ./Dockerfile .
+	docker push alexanderbryksin/kotlin_spring_microservice:latest
