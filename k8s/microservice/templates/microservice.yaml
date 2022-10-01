@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: microservice
+  labels:
+    app: microservice
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: microservice
+      labels:
+        app: microservice
+    spec:
+      containers:
+        - name: microservice
+          image: alexanderbryksin/kotlin_spring_microservice:latest
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: '3000Mi'
+              cpu: "2000m"
+            limits:
+              memory: '3000Mi'
+          livenessProbe:
+            httpGet:
+              port: 8000
+              path: /actuator/health/liveness
+            initialDelaySeconds: 560
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              port: 8000
+              path: /actuator/health/readiness
+            initialDelaySeconds: 560
+            periodSeconds: 5
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: SPRING_APPLICATION_NAME
+              value: microservice_k8s
+            - name: SERVER_PORT
+              value: "8000"
+            - name: SPRING_ZIPKIN_BASE_URL
+              value: zipkin:9411
+            - name: SPRING_R2DBC_URL
+              value: "r2dbc:postgresql://postgres:5432/bank_accounts"
+            - name: SPRING_FLYWAY_URL
+              value: "jdbc:postgresql://postgres:5432/bank_accounts"
+            - name: SPRING_REDIS_HOST
+              value: redis
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+  selector:
+    matchLabels:
+      app: microservice
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: microservice-service
+spec:
+  selector:
+    app: microservice
+  ports:
+    - port: 8000
+      name: http
+      protocol: TCP
+  type: ClusterIP
