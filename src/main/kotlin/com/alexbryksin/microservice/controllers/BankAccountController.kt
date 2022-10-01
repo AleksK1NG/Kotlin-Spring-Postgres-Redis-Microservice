@@ -8,7 +8,6 @@ import com.alexbryksin.microservice.repositories.BankAccountPostgresRepositoryIm
 import com.alexbryksin.microservice.services.BankAccountService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
@@ -28,20 +27,16 @@ class BankAccountController(
 ) {
 
     @GetMapping(path = ["all/balance"])
+    @Operation(method = "findAllAccounts", summary = "find all bank account with given amount range", operationId = "findAllAccounts")
     suspend fun findAllAccounts(
         @RequestParam(name = "min", defaultValue = "0") min: BigDecimal,
-        @RequestParam(name = "max") max: BigDecimal,
+        @RequestParam(name = "max", defaultValue = "500000000") max: BigDecimal,
         @RequestParam(name = "page", defaultValue = "0") page: Int,
         @RequestParam(name = "size", defaultValue = "10") size: Int,
-    ) = coroutineScope {
-        try {
-            val pageRequest = PageRequest.of(page, size)
-            val bankAccounts = bankAccountPostgresRepositoryImpl.findByBalanceAmount(min, max, pageRequest)
-            log.info("bankAccounts: ${bankAccounts?.size}")
-            bankAccounts?.map { SuccessBankAccountResponse.of(it) }
-        } catch (ex: Exception) {
-            log.error("find all", ex)
-        }
+    ) = withTimeout(httpTimeoutMillis) {
+        ResponseEntity.ok(bankAccountService.findByBalanceAmount(min, max, PageRequest.of(page, size))
+            .map { SuccessBankAccountResponse.of(it) }
+            .also { log.info("find by balance amount response: $it") })
     }
 
     @PutMapping(path = ["{id}"])

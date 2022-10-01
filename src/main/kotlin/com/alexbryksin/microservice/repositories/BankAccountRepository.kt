@@ -1,27 +1,12 @@
 package com.alexbryksin.microservice.repositories
 
 import com.alexbryksin.microservice.domain.BankAccount
-import org.springframework.data.r2dbc.repository.Modifying
-import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.repository.kotlin.CoroutineSortingRepository
-import java.math.BigDecimal
+import org.springframework.stereotype.Repository
 import java.util.*
 
-interface BankAccountRepository : CoroutineSortingRepository<BankAccount, UUID> {
 
+@Repository
+interface BankAccountRepository : CoroutineSortingRepository<BankAccount, UUID>, BankAccountPostgresRepository {
     suspend fun findByEmail(email: String): BankAccount?
-
-    suspend fun findByBalanceIsBetween(min: BigDecimal, max: BigDecimal): List<BankAccount>
-
-    @Modifying
-    @Query(
-        "INSERT INTO microservices.bank_accounts (bank_account_id, email, phone, balance, currency, created_at, updated_at) VALUES (bank_account_id = \$1, email = \$2, phone = \$3, balance = \$4, currency = \$5, created_at = now(), updated_at = now())"
-    )
-    suspend fun insert(
-        bankAccountId: UUID,
-        email: String,
-        phone: String,
-        balance: BigDecimal,
-        currency: String
-    )
 }
