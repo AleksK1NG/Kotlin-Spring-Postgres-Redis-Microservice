@@ -41,15 +41,30 @@ spec:
             - name: SPRING_APPLICATION_NAME
               value: microservice_k8s
             - name: SERVER_PORT
-              value: "8000"
+              valueFrom:
+                configMapKeyRef:
+                  key: server_port
+                  name: {{ .Values.microservice.name }}-config-map
             - name: SPRING_ZIPKIN_BASE_URL
-              value: zipkin:9411
+              valueFrom:
+                configMapKeyRef:
+                  key: zipkin_base_url
+                  name: {{ .Values.microservice.name }}-config-map
             - name: SPRING_R2DBC_URL
-              value: "r2dbc:postgresql://postgres:5432/bank_accounts"
+              valueFrom:
+                configMapKeyRef:
+                  key: r2dbc_url
+                  name: {{ .Values.microservice.name }}-config-map
             - name: SPRING_FLYWAY_URL
-              value: "jdbc:postgresql://postgres:5432/bank_accounts"
+              valueFrom:
+                configMapKeyRef:
+                  key: flyway_url
+                  name: {{ .Values.microservice.name }}-config-map
             - name: SPRING_REDIS_HOST
-              value: redis
+              valueFrom:
+                configMapKeyRef:
+                  key: redis_host
+                  name: {{ .Values.microservice.name }}-config-map
       restartPolicy: Always
       terminationGracePeriodSeconds: {{ .Values.microservice.terminationGracePeriodSeconds }}
   selector:
@@ -94,3 +109,16 @@ spec:
   namespaceSelector:
     matchNames:
       - default
+        
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.microservice.name }}-config-map
+data:
+  server_port: "8000"
+  zipkin_base_url: zipkin:9411
+  r2dbc_url: "r2dbc:postgresql://postgres:5432/bank_accounts"
+  flyway_url: "jdbc:postgresql://postgres:5432/bank_accounts"
+  redis_host: redis

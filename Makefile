@@ -14,7 +14,7 @@ develop:
 
 
 # ==============================================================================
-# Docker support grafana - prom-operator
+# Docker and k8s support grafana - prom-operator
 
 FILES := $(shell docker ps -aq)
 
@@ -59,3 +59,4 @@ helm_uninstall_all:
 	helm uninstall monitoring
 	kubens default
 	helm uninstall microservices
+	kubectl delete namespace monitoring

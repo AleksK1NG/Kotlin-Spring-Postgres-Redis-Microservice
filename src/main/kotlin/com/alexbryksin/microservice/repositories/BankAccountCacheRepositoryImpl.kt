@@ -56,6 +56,7 @@ class BankAccountCacheRepositoryImpl(
 
     override suspend fun <T> getKey(key: String, clazz: Class<T>): T? = withContext(Dispatchers.IO + tracer.asContextElement()) {
         val span = tracer.nextSpan(tracer.currentSpan()).start().name("BankAccountCacheRepositoryImpl.getKey")
+
         try {
             redissonClient.getBucket<String>(getKey(key), StringCodec.INSTANCE)
                 .get()
