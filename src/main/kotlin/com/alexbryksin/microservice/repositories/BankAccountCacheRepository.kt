@@ -11,8 +11,5 @@ interface BankAccountCacheRepository {
 
     suspend fun setKey(key: String, value: Any, timeToLive: Long, timeUnit: TimeUnit)
 
-
     suspend fun <T> getKey(key: String, clazz: Class<T>): T?
-
-
 }
