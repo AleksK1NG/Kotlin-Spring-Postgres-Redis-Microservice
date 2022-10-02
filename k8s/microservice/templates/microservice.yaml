@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: microservice
+  name: {{ .Values.microservice.name }}
   labels:
-    app: microservice
+    app: {{ .Values.microservice.name }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.microservice.replicas }}
   template:
     metadata:
-      name: microservice
+      name: {{ .Values.microservice.name }}
       labels:
-        app: microservice
+        app: {{ .Values.microservice.name }}
     spec:
       containers:
-        - name: microservice
-          image: alexanderbryksin/kotlin_spring_microservice:latest
+        - name: {{ .Values.microservice.name }}
+          image: {{ .Values.microservice.image }}
           imagePullPolicy: Always
           resources:
             requests:
@@ -24,19 +24,19 @@ spec:
               memory: '3000Mi'
           livenessProbe:
             httpGet:
-              port: 8000
-              path: /actuator/health/liveness
-            initialDelaySeconds: 560
-            periodSeconds: 5
+              port: {{ .Values.microservice.livenessProbe.httpGet.port }}
+              path: {{ .Values.microservice.livenessProbe.httpGet.path }}
+            initialDelaySeconds: {{ .Values.microservice.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.microservice.livenessProbe.periodSeconds }}
           readinessProbe:
             httpGet:
-              port: 8000
-              path: /actuator/health/readiness
-            initialDelaySeconds: 560
-            periodSeconds: 5
+              port: {{ .Values.microservice.readinessProbe.httpGet.port }}
+              path: {{ .Values.microservice.readinessProbe.httpGet.path }}
+            initialDelaySeconds: {{ .Values.microservice.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.microservice.readinessProbe.periodSeconds }}
           ports:
-            - containerPort: 8000
-              name: http
+            - containerPort: {{ .Values.microservice.ports.http.containerPort }}
+              name: {{ .Values.microservice.ports.http.name }}
           env:
             - name: SPRING_APPLICATION_NAME
               value: microservice_k8s
@@ -51,21 +51,46 @@ spec:
             - name: SPRING_REDIS_HOST
               value: redis
       restartPolicy: Always
-      terminationGracePeriodSeconds: 30
+      terminationGracePeriodSeconds: {{ .Values.microservice.terminationGracePeriodSeconds }}
   selector:
     matchLabels:
-      app: microservice
+      app: {{ .Values.microservice.name }}
 
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
-  name: microservice-service
+  name: {{ .Values.microservice.name }}-service
+  labels:
+    app: {{ .Values.microservice.name }}
 spec:
   selector:
-    app: microservice
+    app: {{ .Values.microservice.name }}
   ports:
-    - port: 8000
+    - port: {{ .Values.microservice.service.port }}
       name: http
       protocol: TCP
+      targetPort: http
   type: ClusterIP
+
+---
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    release: monitoring
+  name: {{ .Values.microservice.name }}-service-monitor
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.microservice.name }}
+  endpoints:
+    - interval: 10s
+      port: http
+      path: /actuator/prometheus
+  namespaceSelector:
+    matchNames:
+      - default
