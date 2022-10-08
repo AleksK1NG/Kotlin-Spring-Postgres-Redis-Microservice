@@ -60,3 +60,6 @@ helm_uninstall_all:
 	kubens default
 	helm uninstall microservices
 	kubectl delete namespace monitoring
+
+wrk:
+	wrk -t20 -c200 -d60s --latency http://localhost:8000/api/v1/bank/0b661cb6-9cc7-41a5-b891-1d05d00fd49a

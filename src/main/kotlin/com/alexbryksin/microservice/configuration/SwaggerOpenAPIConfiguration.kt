@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Configuration
 
 @OpenAPIDefinition(
     info = Info(
-        title = "Kotlin Spring Postgresql Redis Microservice",
-        description = "Kotlin Spring Postgresql Redis Microservice example",
+        title = "Kotlin, Spring WebFlux, Postgresql and Redis Microservice",
+        description = "Kotlin, Spring WebFlux, Postgresql and Redis Microservice example",
         contact = Contact(name = "Alexander Bryksin", email = "alexander.bryksin@yandex.ru", url = "https://github.com/AleksK1NG")
     )
 )

@@ -3,7 +3,6 @@ package com.alexbryksin.microservice.repositories
 import com.alexbryksin.microservice.domain.BankAccount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
@@ -27,7 +26,7 @@ class BankAccountPostgresRepositoryImpl(
     private val tracer: Tracer
 ) : BankAccountPostgresRepository {
 
-    override suspend fun findByBalanceAmount(min: BigDecimal, max: BigDecimal, pageable: Pageable): PageImpl<BankAccount> = coroutineScope {
+    override suspend fun findByBalanceAmount(min: BigDecimal, max: BigDecimal, pageable: Pageable): PageImpl<BankAccount> =
         withContext(Dispatchers.IO + tracer.asContextElement()) {
             val span = tracer.nextSpan(tracer.currentSpan()).start().name("BankAccountPostgresRepositoryImpl.findByBalanceAmount")
             val query = Query.query(Criteria.where("balance").between(min, max))
@@ -36,7 +35,7 @@ class BankAccountPostgresRepositoryImpl(
                 val accountsList = async {
                     template.select(query.with(pageable), BankAccount::class.java)
                         .asFlow()
-                        .buffer(100)
+                        .buffer(accountsListBufferSize)
                         .toList()
                 }
 
@@ -47,11 +46,15 @@ class BankAccountPostgresRepositoryImpl(
                 span.end()
             }
         }
-    }
+
 
     private fun spanTagFindByBalanceAmount(span: Span, data: PageImpl<BankAccount>) {
         span.tag("accountsList", data.content.size.toString())
             .tag("totalCount", data.totalElements.toString())
             .tag("pagination", data.pageable.toString())
+    }
+
+    companion object {
+        const val accountsListBufferSize = 100
     }
 }

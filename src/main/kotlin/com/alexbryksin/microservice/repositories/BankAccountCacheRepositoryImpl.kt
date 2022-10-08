@@ -25,6 +25,7 @@ class BankAccountCacheRepositoryImpl(
 
         try {
             val serializedValue = mapper.writeValueAsString(value)
+
             redissonClient.getBucket<String>(getKey(key), StringCodec.INSTANCE)
                 .set(serializedValue, cacheTimeToLiveSeconds, TimeUnit.SECONDS)
                 .awaitSingleOrNull()
@@ -42,6 +43,7 @@ class BankAccountCacheRepositoryImpl(
 
         try {
             val serializedValue = mapper.writeValueAsString(value)
+
             redissonClient.getBucket<String>(getKey(key), StringCodec.INSTANCE)
                 .set(serializedValue, timeToLive, timeUnit)
                 .awaitSingleOrNull()

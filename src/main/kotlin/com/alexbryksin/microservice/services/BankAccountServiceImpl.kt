@@ -32,14 +32,14 @@ class BankAccountServiceImpl(
             val span = tracer.nextSpan(tracer.currentSpan()).start().name("BankAccountServiceImpl.depositAmount")
 
             try {
-                val bankAccount = bankAccountRepository.findById(id)
-                    ?: throw BankAccountNotFoundException("bank account with id: $id not found").also { span.error(it) }
+                val bankAccount = bankAccountRepository.findById(id) ?: throw BankAccountNotFoundException(id.toString())
+                    .also { span.error(it) }
+
                 bankAccount.depositAmount(depositAmountRequest.amount)
-                bankAccountRepository.save(bankAccount)
-                    .also {
-                        span.tag("bankAccount", it.toString())
-                        bankAccountCacheRepository.setKey(id.toString(), it)
-                    }
+                bankAccountRepository.save(bankAccount).also {
+                    bankAccountCacheRepository.setKey(id.toString(), it)
+                    span.tag("bankAccount", it.toString())
+                }
             } finally {
                 span.end()
             }
@@ -63,8 +63,8 @@ class BankAccountServiceImpl(
         try {
             val cachedBankAccount = bankAccountCacheRepository.getKey(id.toString(), BankAccount::class.java)
             if (cachedBankAccount != null) return@withContext cachedBankAccount
-            val bankAccount = bankAccountRepository.findById(id)
-                ?: throw BankAccountNotFoundException("bank account with id: $id not found")
+
+            val bankAccount = bankAccountRepository.findById(id) ?: throw BankAccountNotFoundException(id.toString())
 
             bankAccountCacheRepository.setKey(id.toString(), bankAccount)
             bankAccount.also { span.tag("bankAccount", it.toString()) }

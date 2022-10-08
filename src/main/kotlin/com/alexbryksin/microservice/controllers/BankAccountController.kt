@@ -16,13 +16,12 @@ import org.springframework.web.bind.annotation.*
 import java.math.BigDecimal
 import java.util.*
 import javax.validation.Valid
-import javax.validation.Validator
 
 
 @RestController
 @RequestMapping(path = ["/api/v1/bank"])
-@Tag(name = "Bank Account", description = "Bank Account controller REST Endpoints")
-class BankAccountController(private val bankAccountService: BankAccountService, private val validator: Validator) {
+@Tag(name = "Bank Account", description = "Bank Account REST Endpoints")
+class BankAccountController(private val bankAccountService: BankAccountService) {
 
     @PutMapping(path = ["{id}"])
     @Operation(method = "depositAmount", summary = "deposit amount", operationId = "depositAmount")

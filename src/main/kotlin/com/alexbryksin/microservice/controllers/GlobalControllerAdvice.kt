@@ -25,7 +25,7 @@ class GlobalControllerAdvice {
     fun handleRuntimeException(ex: RuntimeException, request: ServerHttpRequest): ResponseEntity<ErrorHttpResponse> {
         val errorHttpResponse = ErrorHttpResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.message ?: "", LocalDateTime.now().toString())
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(errorHttpResponse).also {
-            log.error("(GlobalControllerAdvice) RuntimeException", ex)
+            log.error("(GlobalControllerAdvice) INTERNAL_SERVER_ERROR RuntimeException", ex)
         }
     }
 
