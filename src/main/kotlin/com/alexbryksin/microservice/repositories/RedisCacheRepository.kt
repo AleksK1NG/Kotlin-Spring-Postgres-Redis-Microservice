@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 
 
 @Repository
-interface BankAccountCacheRepository {
+interface RedisCacheRepository {
 
     suspend fun setKey(key: String, value: Any)
 

@@ -14,11 +14,11 @@ import java.util.concurrent.TimeUnit
 
 
 @Repository
-class BankAccountCacheRepositoryImpl(
+class RedisCacheRepositoryImpl(
     private val redissonClient: RedissonReactiveClient,
     private val mapper: ObjectMapper,
     private val tracer: Tracer
-) : BankAccountCacheRepository {
+) : RedisCacheRepository {
 
     override suspend fun setKey(key: String, value: Any): Unit = withContext(Dispatchers.IO + tracer.asContextElement()) {
         val span = tracer.nextSpan(tracer.currentSpan()).start().name("BankAccountCacheRepositoryImpl.setKey")
@@ -78,7 +78,7 @@ class BankAccountCacheRepositoryImpl(
     private fun getKey(key: String): String = "$prefix:$key"
 
     companion object {
-        private val log = LoggerFactory.getLogger(BankAccountCacheRepositoryImpl::class.java)
+        private val log = LoggerFactory.getLogger(RedisCacheRepositoryImpl::class.java)
         private const val prefix = "bankAccountMicroservice"
         private const val cacheTimeToLiveSeconds = 250L
     }

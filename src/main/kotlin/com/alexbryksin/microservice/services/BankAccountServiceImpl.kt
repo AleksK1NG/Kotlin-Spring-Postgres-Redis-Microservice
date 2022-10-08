@@ -5,8 +5,8 @@ import com.alexbryksin.microservice.domain.fromCreateRequest
 import com.alexbryksin.microservice.dto.CreateBankAccountRequest
 import com.alexbryksin.microservice.dto.DepositAmountRequest
 import com.alexbryksin.microservice.exceptions.BankAccountNotFoundException
-import com.alexbryksin.microservice.repositories.BankAccountCacheRepository
 import com.alexbryksin.microservice.repositories.BankAccountRepository
+import com.alexbryksin.microservice.repositories.RedisCacheRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.springframework.cloud.sleuth.Tracer
@@ -22,7 +22,7 @@ import java.util.*
 @Service
 class BankAccountServiceImpl(
     private val bankAccountRepository: BankAccountRepository,
-    private val bankAccountCacheRepository: BankAccountCacheRepository,
+    private val redisCacheRepository: RedisCacheRepository,
     private val tracer: Tracer
 ) : BankAccountService {
 
@@ -32,12 +32,11 @@ class BankAccountServiceImpl(
             val span = tracer.nextSpan(tracer.currentSpan()).start().name("BankAccountServiceImpl.depositAmount")
 
             try {
-                val bankAccount = bankAccountRepository.findById(id) ?: throw BankAccountNotFoundException(id.toString())
-                    .also { span.error(it) }
+                val bankAccount = bankAccountRepository.findById(id) ?: throw BankAccountNotFoundException(id.toString()).also { span.error(it) }
 
                 bankAccount.depositAmount(depositAmountRequest.amount)
                 bankAccountRepository.save(bankAccount).also {
-                    bankAccountCacheRepository.setKey(id.toString(), it)
+                    redisCacheRepository.setKey(id.toString(), it)
                     span.tag("bankAccount", it.toString())
                 }
             } finally {
@@ -61,12 +60,12 @@ class BankAccountServiceImpl(
         val span = tracer.nextSpan(tracer.currentSpan()).start().name("BankAccountServiceImpl.getBankAccountById")
 
         try {
-            val cachedBankAccount = bankAccountCacheRepository.getKey(id.toString(), BankAccount::class.java)
+            val cachedBankAccount = redisCacheRepository.getKey(id.toString(), BankAccount::class.java)
             if (cachedBankAccount != null) return@withContext cachedBankAccount
 
             val bankAccount = bankAccountRepository.findById(id) ?: throw BankAccountNotFoundException(id.toString())
 
-            bankAccountCacheRepository.setKey(id.toString(), bankAccount)
+            redisCacheRepository.setKey(id.toString(), bankAccount)
             bankAccount.also { span.tag("bankAccount", it.toString()) }
         } finally {
             span.end()
@@ -78,12 +77,12 @@ class BankAccountServiceImpl(
         val span = tracer.nextSpan(tracer.currentSpan()).start().name("BankAccountServiceImpl.getBankAccountByEmail")
 
         try {
-            val cachedBankAccount = bankAccountCacheRepository.getKey(email, BankAccount::class.java)
+            val cachedBankAccount = redisCacheRepository.getKey(email, BankAccount::class.java)
             if (cachedBankAccount != null) return@withContext cachedBankAccount
 
             val bankAccount = bankAccountRepository.findByEmail(email)
                 ?: throw BankAccountNotFoundException("bank account with email: $email not found").also { span.error(it) }
-            bankAccountCacheRepository.setKey(email, bankAccount)
+            redisCacheRepository.setKey(email, bankAccount)
             bankAccount.also { span.tag("bankAccount", it.toString()) }
         } finally {
             span.end()
