@@ -9,4 +9,4 @@ COPY --from=builder dependencies/ ./
 COPY --from=builder snapshot-dependencies/ ./
 COPY --from=builder spring-boot-loader/ ./
 COPY --from=builder application/ ./
-ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
+ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher", "-Xmx4024m", "-Xms4024m", "-XX:MaxRAMPercentage=75", "-XX:+UseG1GC"]

@@ -18,10 +18,11 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              memory: '3000Mi'
-              cpu: "2000m"
+              memory: '8000Mi'
+              cpu: "4000m"
             limits:
-              memory: '3000Mi'
+              memory: '8000Mi'
+              cpu: "4000m"
           livenessProbe:
             httpGet:
               port: {{ .Values.microservice.livenessProbe.httpGet.port }}
@@ -40,6 +41,8 @@ spec:
           env:
             - name: SPRING_APPLICATION_NAME
               value: microservice_k8s
+            - name: JAVA_OPTS
+              value: "-XX:+UseG1GC -XX:MaxRAMPercentage=75"
             - name: SERVER_PORT
               valueFrom:
                 configMapKeyRef:
