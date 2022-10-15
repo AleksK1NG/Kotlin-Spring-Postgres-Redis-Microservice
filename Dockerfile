@@ -1,5 +1,4 @@
 FROM --platform=linux/arm64 azul/zulu-openjdk-alpine:17 as builder
-#FROM --platform=linux/arm64/v8 azul/zulu-openjdk-alpine:17 as builder
 ARG JAR_FILE=target/Kotlin-Spring-Microservice-0.0.1-SNAPSHOT.jar
 COPY ${JAR_FILE} application.jar
 RUN java -Djarmode=layertools -jar application.jar extract

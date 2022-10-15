@@ -19,7 +19,7 @@ All UI interfaces will be available on ports:
 <img src="https://i.postimg.cc/y6PNgrfr/Swagger-UI-2022-10-08-12-17-39.png" alt="Swagger"/>
 
 #### Grafana UI: http://localhost:3000
-<img src="https://i.postimg.cc/wM7Td9hy/JVM-Micrometer-Grafana-2022-10-08-12-28-59.png" alt="Grafana"/>
+<img src="https://i.postimg.cc/dVngVPQz/Spring-Boot-2-1-System-Monitor-Dashboards-Grafana-2022-10-15-15-17-52.png" alt="Grafana"/>
 
 #### Zipkin UI: http://localhost:9411
 <img src="https://i.postimg.cc/v83QHxBJ/Zipkin-2022-10-08-11-18-08.png" alt="Zipkin"/>
