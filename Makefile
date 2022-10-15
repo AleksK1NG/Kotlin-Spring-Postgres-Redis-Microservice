@@ -62,4 +62,4 @@ helm_uninstall_all:
 	kubectl delete namespace monitoring
 
 wrk:
-	wrk -t20 -c200 -d60s --latency http://localhost:8000/api/v1/bank/0b661cb6-9cc7-41a5-b891-1d05d00fd49a
+	wrk -t8 -c200 -d60s --latency http://localhost:8000/api/v1/bank/4f3fe50e-3156-4e27-988e-93155cc878e8

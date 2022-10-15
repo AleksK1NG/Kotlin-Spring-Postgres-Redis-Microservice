@@ -18,11 +18,11 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              memory: '8000Mi'
-              cpu: "4000m"
+              memory: {{ .Values.microservice.resources.requests.memory }}
+              cpu: {{ .Values.microservice.resources.requests.cpu }}
             limits:
-              memory: '8000Mi'
-              cpu: "4000m"
+              memory: {{ .Values.microservice.resources.limits.memory }}
+              cpu: {{ .Values.microservice.resources.limits.cpu }}
           livenessProbe:
             httpGet:
               port: {{ .Values.microservice.livenessProbe.httpGet.port }}
