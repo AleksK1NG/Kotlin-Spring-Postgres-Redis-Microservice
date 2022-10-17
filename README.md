@@ -1,4 +1,4 @@
-### Kotlin Spring WebFlux, R2DBC and Redisson microservice 👋✨💫
+### Kotlin, Spring WebFlux, R2DBC and Redisson microservice 👋✨💫
 
 #### 👨‍💻 Full list what has been used:
 [Spring](https://spring.io/) Spring web framework <br/>
@@ -12,6 +12,7 @@
 [Kubernetes](https://kubernetes.io/) automating deployment, scaling, and management of containerized applications <br/>
 [Docker](https://www.docker.com/) and docker-compose <br/>
 [Helm](https://helm.sh/) The package manager for Kubernetes <br/>
+[Flywaydb](https://flywaydb.org/) for migrations<br/>
 
 All UI interfaces will be available on ports:
 
@@ -35,5 +36,5 @@ make local // for run docker compose
 ```
 or
 ```
-make develop // run all in docker compose with hot reload
+make develop // run all in docker compose
 ```
